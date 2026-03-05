@@ -9,37 +9,37 @@
     <style>
         body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
         .card { border: none; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-        
+
         /* Updated Output Styles for Markdown/Table rendering */
-        #output { 
-            min-height: 450px; 
-            background: #ffffff; 
-            border: 1px solid #dee2e6; 
-            border-radius: 8px; 
-            padding: 20px; 
-            font-size: 15px; 
-            line-height: 1.6; 
-            overflow-x: auto; 
+        #output {
+            min-height: 450px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+            overflow-x: auto;
             color: #333;
         }
 
         /* INLINE TABLE STYLING */
-        #output table { 
-            width: 100%; 
-            margin-bottom: 1.5rem; 
-            border-collapse: collapse; 
+        #output table {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            border-collapse: collapse;
             font-size: 14px;
         }
-        #output th { 
-            background-color: #f8f9fa; 
-            border: 1px solid #dee2e6; 
-            padding: 10px; 
-            text-align: left; 
+        #output th {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: left;
             font-weight: 600;
         }
-        #output td { 
-            border: 1px solid #dee2e6; 
-            padding: 10px; 
+        #output td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
             vertical-align: top;
         }
         #output tr:nth-child(even) { background-color: #fafafa; }
@@ -47,10 +47,32 @@
         /* Typography improvements for AI output */
         #output h1, #output h2, #output h3 { color: #0d6efd; margin-top: 20px; font-weight: 700; }
         #output ul { padding-left: 20px; }
-        
+
         .progress { height: 8px; display: none; border-radius: 10px; }
         .loading-spinner { display: none; margin-left: 10px; }
         .step-label { font-weight: 600; color: #495057; }
+
+        /* Agent step badges */
+        .step-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #0d6efd;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 24px;
+            text-align: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .step-item span { font-size: 13px; color: #6c757d; }
     </style>
 </head>
 <body>
@@ -58,26 +80,35 @@
 <div class="container py-5">
     <div class="text-center mb-5">
         <h1 class="display-5 fw-bold text-primary">Hi Jaya</h1>
-        <p class="text-muted">UX Content Writing Agent — Finance & Ops Suite</p>
+        <p class="text-muted">UX Content Writing Agent — Finance &amp; Ops Suite</p>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-5">
             <div class="card p-4 h-100">
+
+                <!-- Phase 1: Image Upload -->
                 <div class="mb-4">
-                    <label class="step-label mb-2">Phase 1: Upload Screen</label>
-                    <p class="small text-muted">Upload a screenshot for initial analysis.</p>
+                    <label class="step-label mb-1">Phase 1: Upload Screen</label>
+                    <p class="small text-muted mb-2">Upload a UI screenshot. The agent will automatically:</p>
+                    <div class="mb-2">
+                        <div class="step-item"><div class="step-badge">1</div><span>Describe what the screen is about</span></div>
+                        <div class="step-item"><div class="step-badge">2</div><span>Classify all UX elements (headers, CTAs, input fields, tables, toggles, and more)</span></div>
+                        <div class="step-item"><div class="step-badge">3</div><span>Refine, rephrase, and suggest alternatives for each element</span></div>
+                        <div class="step-item"><div class="step-badge">4</div><span>Provide design improvement comments</span></div>
+                    </div>
                     <input class="form-control" type="file" id="imageInput" accept="image/*">
                 </div>
-                
+
+                <!-- Phase 2: Follow-up context -->
                 <div class="mb-4">
-                    <label class="step-label mb-2">Phase 2: Context / Follow-up</label>
-                    <p class="small text-muted">Provide context or request specific rewrites.</p>
-                    <textarea id="userInput" class="form-control" style="height: 200px;" placeholder="e.g., 'The primary user is an auditor...'"></textarea>
+                    <label class="step-label mb-2">Phase 2: Context / Follow-up (optional)</label>
+                    <p class="small text-muted">Add extra context or ask for specific rewrites after Phase 1.</p>
+                    <textarea id="userInput" class="form-control" style="height: 140px;" placeholder="e.g., 'The primary user is an auditor. Simplify the language for non-technical readers.'"></textarea>
                 </div>
 
                 <button id="genBtn" onclick="runAgent()" class="btn btn-primary btn-lg w-100">
-                    Run Agent Logic
+                    Run UX Agent
                     <span id="spinner" class="spinner-border spinner-border-sm loading-spinner"></span>
                 </button>
             </div>
@@ -92,7 +123,7 @@
                 </div>
 
                 <div id="output">Analysis or rewritten content will appear here...</div>
-                
+
                 <div class="mt-3 d-flex gap-2">
                     <button onclick="copyToClipboard()" class="btn btn-sm btn-outline-secondary">Copy Content</button>
                     <button onclick="clearInputs()" class="btn btn-sm btn-outline-danger">Clear All</button>
@@ -103,13 +134,82 @@
 </div>
 
 <script>
-    let sessionHistory = ""; 
+    let sessionHistory = "";
+
+    /**
+     * UX_AGENT_PROMPT — system-level instruction sent to the Lambda backend on
+     * every request that contains an uploaded image.
+     *
+     * It instructs the AI model to perform a deterministic 4-step analysis:
+     *   Step 1  Screen Description   — brief overview of the screen's purpose
+     *   Step 2  UX Element Classification — structured table of all UI elements
+     *   Step 3  UX Content Refinement — rewrites + alternatives per element
+     *   Step 4  Design Improvement Comments — actionable UX design suggestions
+     *
+     * The prompt is appended to the FormData as the `prompt` field and is read
+     * by the Lambda handler as the model's system / user instruction.
+     */
+    const UX_AGENT_PROMPT = `You are an expert UX content writer and UI/UX reviewer. When the user uploads a UI screenshot, follow these four steps exactly and present them as clearly labeled sections:
+
+## Step 1 — Screen Description
+Read the uploaded image carefully and provide a concise description (3–5 sentences) of what the screen is about: its purpose, the product area it belongs to, and the target audience or user task it supports.
+
+## Step 2 — UX Element Classification
+Identify and list every UX element visible in the screen. Classify each element into one of the following categories (add more if needed):
+- Header
+- Page Title / Section Title
+- Input Fields (text boxes, dropdowns, date pickers, search bars)
+- Labels / Field Labels
+- Notes / Helper Text / Tooltips
+- Insights / Callouts / Info Banners
+- Data Tables / Lists
+- Toggles / Checkboxes / Radio Buttons
+- CTAs (Primary Buttons, Secondary Buttons, Links)
+- Body Text / Paragraphs
+- Navigation (breadcrumbs, tabs, sidebar items)
+- Icons / Status Indicators
+
+Present this as a structured table with columns: **Element Type | Current Text / Label | Location on Screen**.
+
+## Step 3 — UX Content Refinement
+For each element identified in Step 2, review its current text and suggest improvements. For every element provide:
+- **Current Text**: what is written now
+- **Refined Version**: a clearer, more concise, or more user-friendly rewrite
+- **Alternatives**: 1–2 additional alternative phrasings where helpful
+- **Rationale**: a one-line explanation of why the change improves clarity, tone, or usability
+
+Present this as a table with columns: **Element Type | Current Text | Refined Version | Alternatives | Rationale**.
+
+## Step 4 — Design Improvement Comments
+Provide 3–6 specific, actionable UX design comments about the screen. Focus on:
+- Information hierarchy and visual weight
+- Consistency of labeling and terminology
+- Accessibility (contrast, label clarity, error messaging)
+- User flow and cognitive load
+- Missing elements or copy that would help users complete their task
+
+Format each comment as a numbered list with a **bold title** followed by the suggestion.
+
+---
+If the user also provides additional context or follow-up notes in their message, incorporate that context into your analysis above.`;
+
+    // Progress bar messages for a 4-step image analysis (one message per ~25% of progress).
+    // Each message corresponds to one agent step, cycling as the bar fills from 0 → 95.
+    const IMAGE_PROGRESS_MESSAGES = [
+        "Step 1: Describing the screen...",
+        "Step 2: Classifying UX elements...",
+        "Step 3: Refining content...",
+        "Step 4: Generating design comments..."
+    ];
+    const FOLLOW_UP_PROGRESS_MESSAGES = ["Refining with context..."];
+    // Number of progress-bar percentage points allocated to each step message.
+    const PROGRESS_STEP_INTERVAL = Math.floor(95 / IMAGE_PROGRESS_MESSAGES.length);
 
     async function runAgent() {
         const notes = document.getElementById('userInput').value;
         const imageInput = document.getElementById('imageInput');
         const imageFile = imageInput.files[0];
-        
+
         const outputDiv = document.getElementById('output');
         const btn = document.getElementById('genBtn');
         const spinner = document.getElementById('spinner');
@@ -120,8 +220,14 @@
         if (!notes.trim() && !imageFile) return alert("Please upload an image for Phase 1 or provide notes for Phase 2!");
 
         const formData = new FormData();
+
+        // Always send the structured UX agent system prompt so the backend model
+        // follows the four-step analysis workflow.
+        formData.append('prompt', UX_AGENT_PROMPT);
+
+        // Optional user-provided context / follow-up notes
         formData.append('notes', notes);
-        
+
         if (sessionHistory) {
             formData.append('history', sessionHistory);
         }
@@ -133,13 +239,20 @@
         spinner.style.display = "inline-block";
         progressContainer.style.display = 'flex';
         outputDiv.style.opacity = "0.5";
-        
+
         let width = 0;
+        const progressMessages = imageFile ? IMAGE_PROGRESS_MESSAGES : FOLLOW_UP_PROGRESS_MESSAGES;
+        let msgIndex = 0;
+
         const interval = setInterval(() => {
             if (width < 95) {
                 width += 1;
                 progressBar.style.width = width + '%';
-                progressText.innerText = imageFile ? "Phase 1: Analyzing Screen..." : "Phase 2: Refining with Context...";
+                const newMsgIndex = Math.min(Math.floor(width / PROGRESS_STEP_INTERVAL), progressMessages.length - 1);
+                if (newMsgIndex !== msgIndex) {
+                    msgIndex = newMsgIndex;
+                }
+                progressText.innerText = progressMessages[msgIndex];
             }
         }, 150);
 
@@ -148,7 +261,7 @@
 
             const response = await fetch(LAMBDA_URL, {
                 method: 'POST',
-                body: formData 
+                body: formData
             });
 
             if (!response.ok) {
@@ -158,20 +271,20 @@
 
             const data = await response.json();
             const rawText = data.text || "No response from agent.";
-            
-            // 1. Update session history with RAW markdown text
-            sessionHistory = rawText; 
 
-            // 2. Render Markdown to HTML for the UI
+            // Update session history with RAW markdown text for Phase 2 follow-ups
+            sessionHistory = rawText;
+
+            // Render Markdown to HTML for the UI
             outputDiv.innerHTML = marked.parse(rawText);
 
             clearInterval(interval);
             progressBar.style.width = '100%';
-            progressText.innerText = "Task Complete";
+            progressText.innerText = "✅ Analysis Complete";
             outputDiv.style.opacity = "1";
 
             if (imageFile) {
-                imageInput.value = ""; 
+                imageInput.value = "";
             }
 
         } catch (err) {
@@ -181,8 +294,8 @@
         } finally {
             btn.disabled = false;
             spinner.style.display = "none";
-            setTimeout(() => { 
-                progressContainer.style.display = 'none'; 
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
             }, 3000);
         }
@@ -195,7 +308,7 @@
     }
 
     function clearInputs() {
-        sessionHistory = ""; 
+        sessionHistory = "";
         document.getElementById('userInput').value = "";
         document.getElementById('imageInput').value = "";
         document.getElementById('output').innerHTML = "Memory cleared. Upload a new image to start Phase 1.";
