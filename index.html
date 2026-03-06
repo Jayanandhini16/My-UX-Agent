@@ -9,23 +9,40 @@
     <style>
         body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
         .card { border: none; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-        
-        #output { 
-            min-height: 500px; background: white; border: 1px solid #dee2e6; border-radius: 8px; 
+
+        #output {
+            min-height: 500px; background: white; border: 1px solid #dee2e6; border-radius: 8px;
             padding: 25px; font-size: 15px; line-height: 1.6; overflow-x: auto; color: #333;
         }
 
-        /* Improved Table Styling for Markdown */
+        /* Table styling for Markdown output */
         #output table { width: 100%; margin-bottom: 1.5rem; border-collapse: collapse; border: 1px solid #eee; }
         #output th { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 12px; text-align: left; font-weight: 600; color: #0d6efd; }
         #output td { border: 1px solid #dee2e6; padding: 12px; vertical-align: top; }
         #output tr:nth-child(even) { background-color: #fafafa; }
-        
+
         .step-label { font-weight: 700; color: #0d6efd; margin-bottom: 8px; display: block; font-size: 0.9rem; text-transform: uppercase; }
         .progress { height: 8px; display: none; margin-bottom: 20px; border-radius: 10px; }
-        
+
         .btn-primary { background-color: #0d6efd; border: none; padding: 12px; font-weight: 600; border-radius: 8px; transition: all 0.3s; }
         .btn-primary:hover { background-color: #0b5ed7; transform: translateY(-1px); }
+
+        /* Audit task checklist */
+        .audit-checklist { background: #f8f9ff; border: 1px solid #d0d9ff; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+        .audit-checklist .checklist-title { font-size: 0.8rem; font-weight: 700; color: #0d6efd; text-transform: uppercase; margin-bottom: 8px; }
+        .audit-checklist .task-item { display: flex; align-items: flex-start; gap: 8px; font-size: 0.85rem; color: #444; margin-bottom: 5px; }
+        .audit-checklist .task-item .task-num { background: #0d6efd; color: white; border-radius: 50%; width: 18px; height: 18px; min-width: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; margin-top: 1px; }
+        .audit-checklist .task-item.done .task-num { background: #198754; }
+        .audit-checklist .task-item.active .task-num { background: #fd7e14; }
+
+        /* Mode toggle */
+        .mode-badge { display: inline-block; font-size: 0.75rem; font-weight: 600; border-radius: 20px; padding: 2px 10px; margin-left: 6px; vertical-align: middle; }
+        .mode-badge.full { background: #d1e7ff; color: #0a58ca; }
+        .mode-badge.custom { background: #fff3cd; color: #856404; }
+
+        /* Image preview */
+        #imagePreviewContainer { display: none; margin-top: 8px; }
+        #imagePreview { max-height: 120px; border-radius: 8px; border: 1px solid #dee2e6; object-fit: contain; background: #f8f9fa; width: 100%; }
     </style>
 </head>
 <body>
@@ -33,50 +50,98 @@
 <div class="container py-5">
     <div class="text-center mb-5">
         <h1 class="fw-bold text-primary">Hi Jaya</h1>
-        <p class="text-muted">UX  & Content Refinement System</p>
+        <p class="text-muted">UX &amp; Content Refinement System</p>
     </div>
 
     <div class="row g-4">
+        <!-- Left Panel: Input -->
         <div class="col-lg-5">
             <div class="card p-4 h-100">
-                
-                <div class="mb-4">
+
+                <!-- Phase 1: Image -->
+                <div class="mb-3">
                     <label class="step-label">Phase 1: Source (Image)</label>
-                    <input class="form-control" type="file" id="imageInput" accept="image/*">
+                    <input class="form-control" type="file" id="imageInput" accept="image/*" onchange="onImageSelected()">
+                    <div id="imagePreviewContainer">
+                        <img id="imagePreview" src="" alt="Selected image preview">
+                    </div>
                 </div>
 
-                <div class="mb-4">
+                <!-- Phase 1: Text -->
+                <div class="mb-3">
                     <label class="step-label text-success">Phase 1: Source (Text Audit)</label>
                     <textarea id="sourceText" class="form-control" rows="3" placeholder="Paste UI labels or copy here if no image..."></textarea>
                 </div>
 
-                <hr class="my-4">
+                <hr class="my-3">
 
-                <div class="mb-4">
-                    <label class="step-label" style="color: #fd7e14;">Phase 2: Refinement / Clarity</label>
-                    <p class="small text-muted">Provide feedback or ask for changes to the previous result.</p>
-                    <textarea id="userInput" class="form-control" style="height: 120px;" placeholder="e.g., 'Make the table shorter' or 'Change tone to professional'"></textarea>
+                <!-- Analysis Mode -->
+                <div class="mb-3">
+                    <label class="step-label" style="color: #6f42c1;">Analysis Mode</label>
+                    <div class="d-flex gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="analysisMode" id="modeFullAudit" value="full" checked onchange="onModeChange()">
+                            <label class="form-check-label fw-semibold" for="modeFullAudit">
+                                Full UX Audit <span class="mode-badge full">4 tasks</span>
+                            </label>
+                        </div>
+                        <div class="form-check ms-3">
+                            <input class="form-check-input" type="radio" name="analysisMode" id="modeCustom" value="custom" onchange="onModeChange()">
+                            <label class="form-check-label fw-semibold" for="modeCustom">
+                                Custom <span class="mode-badge custom">manual</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Audit Task Checklist (shown in full mode) -->
+                <div id="auditChecklist" class="audit-checklist mb-3">
+                    <div class="checklist-title">🔍 Full UX Audit — Tasks</div>
+                    <div class="task-item" id="task1">
+                        <span class="task-num">1</span>
+                        <span>Describe the screen's feature and purpose</span>
+                    </div>
+                    <div class="task-item" id="task2">
+                        <span class="task-num">2</span>
+                        <span>Classify all UX elements (headers, inputs, CTAs, toggles, notes, tables…)</span>
+                    </div>
+                    <div class="task-item" id="task3">
+                        <span class="task-num">3</span>
+                        <span>Refine &amp; rephrase each element with alternatives</span>
+                    </div>
+                    <div class="task-item" id="task4">
+                        <span class="task-num">4</span>
+                        <span>Suggest design improvements</span>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Custom instructions (shown in custom mode or as optional notes) -->
+                <div class="mb-4" id="customInstructionsBlock">
+                    <label class="step-label" style="color: #fd7e14;" id="phase2Label">Phase 2: Refinement / Clarity</label>
+                    <p class="small text-muted" id="phase2Hint">Add follow-up feedback or override the default prompt.</p>
+                    <textarea id="userInput" class="form-control" style="height: 100px;" placeholder="e.g., 'Make the table shorter' or 'Focus only on CTAs'"></textarea>
                 </div>
 
                 <button id="genBtn" onclick="runAgent()" class="btn btn-primary btn-lg w-100">
-                    Run Agent 
+                    Run Agent
                 </button>
             </div>
         </div>
 
+        <!-- Right Panel: Output -->
         <div class="col-lg-7">
             <div class="card p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div id="progressText" class="text-muted small fw-bold">Ready</div>
                     <span id="loadingSpinner" class="spinner-border spinner-border-sm text-primary" style="display: none;"></span>
                 </div>
-                
+
                 <div class="progress" id="progressContainer">
                     <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%"></div>
                 </div>
 
                 <div id="output">Polished UX content will appear here...</div>
-                
+
                 <div class="mt-4 d-flex gap-2">
                     <button onclick="copyToClipboard()" class="btn btn-sm btn-outline-secondary px-3">Copy Content</button>
                     <button onclick="clearAll()" class="btn btn-sm btn-outline-danger px-3">Clear Memory</button>
@@ -87,13 +152,82 @@
 </div>
 
 <script>
-    let sessionHistory = ""; 
+    let sessionHistory = "";
+
+    const AUDIT_TASK_IDS = ['task1', 'task2', 'task3', 'task4'];
+    const PROGRESS_INCREMENT = 1;    // % per tick
+    const PROGRESS_INTERVAL_MS = 180; // ms between ticks
+
+    // The structured 4-task prompt sent to the agent in Full UX Audit mode
+    const FULL_AUDIT_PROMPT = `You are an expert UX Content Analyst. Analyse the provided UI screen and deliver a structured report with exactly four sections:
+
+**1. Feature Description**
+Write a concise 2-3 sentence description of what this screen does and its purpose for the user.
+
+**2. UX Element Classification**
+Identify and list every UX element visible on the screen. Group them by type using a table with columns: Element Type | Element Name / Label | Location on Screen.
+Element types to look for: Page Title, Navigation, Notification / Alert Banner, Input Field, Dropdown, Date Picker, Checkbox / Toggle, CTA Button, Address Block, Helper Text, Section Label, Icon, and any others present.
+
+**3. UX Element Refinement & Alternatives**
+For each element identified above, provide a refinement table with columns: Element | Current Text / State | Suggested Refinement | Alternative Option | Notes.
+Focus on clarity, conciseness, and consistent tone. Flag any typos, ambiguous labels, or missing required indicators.
+
+**4. Design Improvement Comments**
+List specific, actionable recommendations to improve the screen's usability, visual hierarchy, accessibility, and content clarity. Format as a numbered list with a short title and explanation for each recommendation.`;
+
+    function onImageSelected() {
+        const file = document.getElementById('imageInput').files[0];
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const preview = document.getElementById('imagePreview');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+            preview.src = '';
+        }
+    }
+
+    function onModeChange() {
+        const mode = document.querySelector('input[name="analysisMode"]:checked').value;
+        const checklist = document.getElementById('auditChecklist');
+        const phase2Label = document.getElementById('phase2Label');
+        const phase2Hint = document.getElementById('phase2Hint');
+        if (mode === 'full') {
+            checklist.style.display = 'block';
+            phase2Label.textContent = 'Phase 2: Optional Follow-up';
+            phase2Hint.textContent = 'Add follow-up feedback or override the default 4-task prompt.';
+        } else {
+            checklist.style.display = 'none';
+            phase2Label.textContent = 'Phase 2: Custom Instructions';
+            phase2Hint.textContent = 'Provide your own analysis instructions.';
+        }
+    }
+
+    function setTaskActive(taskId) {
+        AUDIT_TASK_IDS.forEach(id => {
+            document.getElementById(id).classList.remove('active', 'done');
+        });
+        if (taskId) document.getElementById(taskId).classList.add('active');
+    }
+
+    function setTasksDone() {
+        AUDIT_TASK_IDS.forEach(id => {
+            document.getElementById(id).classList.remove('active');
+            document.getElementById(id).classList.add('done');
+        });
+    }
 
     async function runAgent() {
         const imageFile = document.getElementById('imageInput').files[0];
         const sourceText = document.getElementById('sourceText').value;
-        const notes = document.getElementById('userInput').value;
-        
+        const userNotes = document.getElementById('userInput').value;
+        const mode = document.querySelector('input[name="analysisMode"]:checked').value;
+
         const outputDiv = document.getElementById('output');
         const btn = document.getElementById('genBtn');
         const progressBar = document.getElementById('progressBar');
@@ -101,65 +235,89 @@
         const progressText = document.getElementById('progressText');
         const spinner = document.getElementById('loadingSpinner');
 
-        // Validation: Need at least one source or history
+        // Validation
         if (!imageFile && !sourceText && !sessionHistory) {
             alert("Please provide a Phase 1 source (Image or Text) to begin.");
             return;
         }
 
+        // Build the notes payload
+        let notes;
+        if (mode === 'full') {
+            const trimmedNotes = userNotes.trim();
+            notes = FULL_AUDIT_PROMPT + (trimmedNotes ? "\n\nAdditional instructions: " + trimmedNotes : "");
+        } else {
+            notes = userNotes;
+        }
+
         const formData = new FormData();
-        formData.append('notes', notes); 
-        formData.append('sourceText', sourceText); 
-        formData.append('history', sessionHistory); 
+        formData.append('notes', notes);
+        formData.append('sourceText', sourceText);
+        formData.append('history', sessionHistory);
         if (imageFile) formData.append('image', imageFile);
 
-        // UI Initialization
+        // UI: start loading
         btn.disabled = true;
         spinner.style.display = "block";
         progressContainer.style.display = 'flex';
         outputDiv.style.opacity = "0.5";
-        
+
+        const taskLabels = [
+            { id: 'task1', msg: 'Describing the feature…' },
+            { id: 'task2', msg: 'Classifying UX elements…' },
+            { id: 'task3', msg: 'Refining content & alternatives…' },
+            { id: 'task4', msg: 'Generating design suggestions…' },
+        ];
+        let taskIndex = 0;
         let width = 0;
+
         const interval = setInterval(() => {
             if (width < 90) {
-                width += 1.5;
+                width += PROGRESS_INCREMENT;
                 progressBar.style.width = width + '%';
-                progressText.innerText = "Double-checking & Refining...";
+                const step = Math.floor((width / 90) * taskLabels.length);
+                if (mode === 'full' && step < taskLabels.length && step !== taskIndex) {
+                    taskIndex = step;
+                    setTaskActive(taskLabels[taskIndex].id);
+                    progressText.innerText = taskLabels[taskIndex].msg;
+                } else if (mode !== 'full') {
+                    progressText.innerText = "Analysing & Refining…";
+                }
             }
-        }, 150);
+        }, PROGRESS_INTERVAL_MS);
 
         try {
             const LAMBDA_URL = "https://yk2tf47ong3um7xxo2fgzhob7e0qaajx.lambda-url.ap-south-1.on.aws/";
             const response = await fetch(LAMBDA_URL, { method: 'POST', body: formData });
-            
+
             if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-            
+
             const data = await response.json();
-            
-            // --- SAFETY CHECK TO PREVENT MARKED ERROR ---
-            const finalContent = data.text || data.result || ""; 
+            const finalContent = data.text || data.result || "";
 
             if (!finalContent) {
                 outputDiv.innerHTML = `<div class="alert alert-warning">The agent processed the request but returned no text. Check your Lambda logs.</div>`;
             } else {
-                sessionHistory = finalContent; // Store for next Phase 2 run
-                outputDiv.innerHTML = marked.parse(finalContent); // Safe parse
+                sessionHistory = finalContent;
+                outputDiv.innerHTML = marked.parse(finalContent);
             }
 
             clearInterval(interval);
             progressBar.style.width = '100%';
-            progressText.innerText = "Done";
+            progressText.innerText = "Done ✓";
             outputDiv.style.opacity = "1";
+            if (mode === 'full') setTasksDone();
 
         } catch (err) {
             console.error(err);
             outputDiv.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> ${err}<br><small>Check if the Lambda URL is active and CORS is enabled.</small></div>`;
             clearInterval(interval);
+            AUDIT_TASK_IDS.forEach(id => document.getElementById(id).classList.remove('active', 'done'));
         } finally {
             btn.disabled = false;
             spinner.style.display = "none";
-            setTimeout(() => { 
-                progressContainer.style.display = 'none'; 
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
             }, 3000);
         }
@@ -168,7 +326,6 @@
     function copyToClipboard() {
         const textToCopy = document.getElementById('output').innerText;
         if (!textToCopy || textToCopy.startsWith("Polished UX")) return;
-        
         navigator.clipboard.writeText(textToCopy).then(() => {
             alert("Audit copied to clipboard!");
         });
@@ -181,6 +338,9 @@
         document.getElementById('userInput').value = "";
         document.getElementById('output').innerHTML = "Memory cleared. Ready for a new task.";
         document.getElementById('progressText').innerText = "Ready";
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        document.getElementById('imagePreview').src = '';
+        AUDIT_TASK_IDS.forEach(id => document.getElementById(id).classList.remove('active', 'done'));
     }
 </script>
 </body>
