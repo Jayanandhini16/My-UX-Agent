@@ -26,6 +26,69 @@
         
         .btn-primary { background-color: #0d6efd; border: none; padding: 12px; font-weight: 600; border-radius: 8px; transition: all 0.3s; }
         .btn-primary:hover { background-color: #0b5ed7; transform: translateY(-1px); }
+
+        /* Hover Text / Tooltip for Tax Info */
+        .tax-info-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            cursor: pointer;
+        }
+        .tax-info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            cursor: help;
+        }
+        .tax-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            background-color: #343a40;
+            color: #fff;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            width: 320px;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .tax-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #343a40;
+        }
+        .tax-tooltip ul {
+            margin: 6px 0 0 0;
+            padding-left: 18px;
+        }
+        .tax-tooltip ul li {
+            margin-bottom: 4px;
+        }
+        .tax-info-wrapper:hover .tax-tooltip,
+        .tax-info-icon:focus + .tax-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -77,9 +140,22 @@
 
                 <div id="output">Polished UX content will appear here...</div>
                 
-                <div class="mt-4 d-flex gap-2">
+                <div class="mt-4 d-flex gap-2 align-items-center flex-wrap">
                     <button onclick="copyToClipboard()" class="btn btn-sm btn-outline-secondary px-3">Copy Content</button>
                     <button onclick="clearAll()" class="btn btn-sm btn-outline-danger px-3">Clear Memory</button>
+
+                    <span class="tax-info-wrapper ms-auto">
+                        <span class="tax-info-label text-muted small">Tax not applied</span>
+                        <span class="tax-info-icon" tabindex="0" aria-describedby="taxTooltip">i</span>
+                        <span class="tax-tooltip" id="taxTooltip" role="tooltip">
+                            Tax cannot be applied due to one of the following reasons:
+                            <ul>
+                                <li>No active tax registration for this jurisdiction.</li>
+                                <li>The selected transaction date doesn't fall within the tax registration period.</li>
+                                <li>The item selected is not taxable.</li>
+                            </ul>
+                        </span>
+                    </span>
                 </div>
             </div>
         </div>
